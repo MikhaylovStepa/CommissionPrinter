@@ -1,0 +1,13 @@
+{
+    "autoload": {
+        "psr-4": {
+            "tests\\": "tests/",
+            "": "src/"
+        }
+    },
+    "require": {
+        "phpunit/phpunit": "^8.5",
+        "jms/serializer": "^3.29",
+        "guzzlehttp/guzzle": "^7.8"
+    }
+}
