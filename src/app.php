@@ -21,12 +21,14 @@ $serializer = SerializerBuilder::create()
 $guzzleClient = new Client();
 $transactionFileReader = new TransactionFileParser($serializer);
 $transactions = $transactionFileReader->parse($argv[1]);
+
 $lookUpBinListProvider = new LookUpBinListProvider($serializer, $guzzleClient);
-$exchangeRatesApiProvider = new ExchangeRatesApiProvider($serializer, $guzzleClient);
 $binProviderKey = $argv[2] ?? $lookUpBinListProvider->getKey();
-$currencyProviderKey = $argv[3] ?? $exchangeRatesApiProvider->getKey();
 $binProviderManager = new BinProviderManager();
 $binProviderManager->addProvider($lookUpBinListProvider);
+
+$exchangeRatesApiProvider = new ExchangeRatesApiProvider($serializer, $guzzleClient);
+$currencyProviderKey = $argv[3] ?? $exchangeRatesApiProvider->getKey();
 $currencyRateProviderManager = new CurrencyRateProviderManager();
 $currencyRateProviderManager->addProvider($exchangeRatesApiProvider);
 
