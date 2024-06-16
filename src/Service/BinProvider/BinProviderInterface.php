@@ -12,4 +12,6 @@ interface BinProviderInterface
      * @throws BinProviderException
      */
     function getCountryAlpha2(string $bin): string;
+
+    function getKey(): string;
 }

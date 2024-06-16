@@ -8,26 +8,27 @@ use Model\Transaction;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Service\BinProvider\BinProviderInterface;
+use Service\BinProvider\BinProviderManager;
 use Service\CommissionCalculator;
 use Service\CurrencyRateProvider\CurrencyRateProviderInterface;
+use Service\CurrencyRateProvider\CurrencyRateProviderManager;
 
 class CommissionCalculatorTest extends TestCase
 {
+    const BIN_PROVIDER_KEY = 'BinProvider';
+    const CURRENCY_RATE_PROVIDER_KEY = 'CurrencyRateProvider';
+
     /**
-     * @var MockObject|BinProviderInterface $mockedBinProvider
+     * @var CommissionCalculator
      */
-    private $mockedBinProvider;
-    /**
-     * @var MockObject|CurrencyRateProviderInterface $mockedCurrencyRateProvider
-     */
-    private $mockedCurrencyRateProvider;
+    private $commissionCalculator;
 
     public function setUp(): void
     {
         parent::setUp();
         /** @var MockObject|BinProviderInterface $mockedBinProvider */
-        $this->mockedBinProvider = $this->createMock(BinProviderInterface::class);
-        $this->mockedBinProvider
+        $mockedBinProvider = $this->createMock(BinProviderInterface::class);
+        $mockedBinProvider
             ->expects($this->once())
             ->method('getCountryAlpha2')
             ->willReturnCallback(function () {
@@ -40,10 +41,11 @@ class CommissionCalculatorTest extends TestCase
 
                 return null;
             });
+        $mockedBinProvider->expects($this->once())->method('getKey')->willReturn(self::BIN_PROVIDER_KEY);
 
         /** @var MockObject|CurrencyRateProviderInterface $mockedCurrencyRateProvider */
-        $this->mockedCurrencyRateProvider = $this->createMock(CurrencyRateProviderInterface::class);
-        $this->mockedCurrencyRateProvider
+        $mockedCurrencyRateProvider = $this->createMock(CurrencyRateProviderInterface::class);
+        $mockedCurrencyRateProvider
             ->expects($this->once())
             ->method('getRate')
             ->willReturnCallback(function () {
@@ -58,6 +60,13 @@ class CommissionCalculatorTest extends TestCase
 
                 return 0;
             });
+        $mockedCurrencyRateProvider
+            ->expects($this->once())->method('getKey')->willReturn(self::CURRENCY_RATE_PROVIDER_KEY);
+        $binProviderManager = new BinProviderManager();
+        $binProviderManager->addProvider($mockedBinProvider);
+        $currencyRateProviderManager = new CurrencyRateProviderManager();
+        $currencyRateProviderManager->addProvider($mockedCurrencyRateProvider);
+        $this->commissionCalculator = new CommissionCalculator($binProviderManager, $currencyRateProviderManager);
     }
 
     public function correctDataSet(): array
@@ -94,8 +103,7 @@ class CommissionCalculatorTest extends TestCase
      */
     public function testCommissionWithCorrectBinAndRate(Transaction $transaction, float $expectedCommission): void
     {
-        $commissionCalculator = new CommissionCalculator($this->mockedBinProvider, $this->mockedCurrencyRateProvider);
-        $actualCommission = $commissionCalculator->calculate($transaction);
+        $actualCommission = $this->commissionCalculator->calculate($transaction, self::BIN_PROVIDER_KEY, self::CURRENCY_RATE_PROVIDER_KEY);
         $this->assertEquals($expectedCommission, $actualCommission);
     }
 
@@ -116,7 +124,6 @@ class CommissionCalculatorTest extends TestCase
     public function testCommissionWithZeroCurrencyRate(Transaction $transaction): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $commissionCalculator = new CommissionCalculator($this->mockedBinProvider, $this->mockedCurrencyRateProvider);
-        $commissionCalculator->calculate($transaction);
+        $this->commissionCalculator->calculate($transaction, self::BIN_PROVIDER_KEY, self::CURRENCY_RATE_PROVIDER_KEY);
     }
 }

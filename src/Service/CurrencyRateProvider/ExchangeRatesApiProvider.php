@@ -51,4 +51,9 @@ class ExchangeRatesApiProvider implements CurrencyRateProviderInterface
             throw new CurrencyRateProviderException('ExchangeRatesApiProvider is currently unavailable');
         }
     }
+
+    function getKey(): string
+    {
+        return 'ExchangeRatesApiProvider';
+    }
 }

@@ -44,4 +44,9 @@ class LookUpBinListProvider implements BinProviderInterface
             throw new BinProviderException('LookUpBinListProvider is currently unavailable');
         }
     }
+
+    function getKey(): string
+    {
+        return 'LookUpBinListProvider';
+    }
 }

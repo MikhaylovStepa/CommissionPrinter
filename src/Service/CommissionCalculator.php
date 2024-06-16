@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Service;
 
 use Model\Transaction;
-use Service\BinProvider\BinProviderInterface;
-use Service\CurrencyRateProvider\CurrencyRateProviderInterface;
+use Service\BinProvider\BinProviderManager;
+use Service\CurrencyRateProvider\CurrencyRateProviderManager;
 
 class CommissionCalculator
 {
@@ -42,26 +42,26 @@ class CommissionCalculator
     const EU_COMMISSION_RATE = 0.01;
     const NON_EU_COMMISSION_RATE = 0.02;
 
-    private $binProvider;
-    private $currencyRateProvider;
+    private $binProviderManager;
+    private $currencyRateProviderManager;
 
-    /**
-     * @param BinProviderInterface $binProvider
-     * @param CurrencyRateProviderInterface $currencyRateProvider
-     */
-    public function __construct(BinProviderInterface $binProvider, CurrencyRateProviderInterface $currencyRateProvider)
+    public function __construct(BinProviderManager $binProvider, CurrencyRateProviderManager $currencyRateProvider)
     {
-        $this->binProvider = $binProvider;
-        $this->currencyRateProvider = $currencyRateProvider;
+        $this->binProviderManager = $binProvider;
+        $this->currencyRateProviderManager = $currencyRateProvider;
     }
 
-    public function calculate(Transaction $transaction): float
+    public function calculate(
+        Transaction $transaction,
+        string $binProvider,
+        string $currencyProvider
+    ): float
     {
-        $countryAlpha2 = $this->binProvider->getCountryAlpha2($transaction->getBin());
+        $countryAlpha2 = $this->binProviderManager->getCountryAlpha2($transaction->getBin(), $binProvider);
         $commissionRate = in_array($countryAlpha2, self::EU_ALPHA_2_LIST)
             ? self::EU_COMMISSION_RATE
             : self::NON_EU_COMMISSION_RATE;
-        $currencyRate = $this->currencyRateProvider->getRate($transaction->getCurrency());
+        $currencyRate = $this->currencyRateProviderManager->getRate($transaction->getCurrency(), $currencyProvider);
         if ($currencyRate <= 0) {
             throw new \InvalidArgumentException('Currency rate must be greater than zero!');
         }

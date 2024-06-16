@@ -12,4 +12,6 @@ interface CurrencyRateProviderInterface
      * @throws CurrencyRateProviderException
      */
     function getRate(string $currency): float;
+
+    function getKey(): string;
 }
