@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Service\CurrencyRateProvider;
 
 use Exception\CurrencyRateProviderException;
@@ -21,10 +23,10 @@ class CurrencyRateProviderManager
     /**
      * @param string $currency
      * @param string $providerKey
-     * @return string
+     * @return float
      * @throws CurrencyRateProviderException
      */
-    public function getRate(string $currency, string $providerKey): string
+    public function getRate(string $currency, string $providerKey): float
     {
         if (!isset($this->providers[$providerKey])) {
             throw new CurrencyRateProviderException("Currency provider was not found!");
